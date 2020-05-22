@@ -30,8 +30,8 @@ type Config struct {
 	S3Region          string             `envconfig:"S3_REGION" required:"true"`
 	S3IsImplicitAuth  bool               `envconfig:"S3_IS_IMPLICIT_AUTH" default:"true"`
 	S3Endpoint        string             `envconfig:"S3_ENDPOINT" default:""`
-	S3AccessKeyID     string             `envconfig:"S3_ACCESS_KEY_ID" default:""`
-	S3SecretAccessKey string             `envconfig:"S3_SECRET_ACCESS_KEY" default:""`
+	S3AccessKeyID     string             `envconfig:"AWS_ACCESS_KEY_ID" default:""`
+	S3SecretAccessKey string             `envconfig:"AWS_SECRET_ACCESS_KEY" default:""`
 	UploadDriver      string             `envconfig:"UPLOAD_DRIVER" default:"s3"`
 	HealthcheckPath   string             `envconfig:"HEALTHCHECK_PATH" default:"/healthcheck"`
 	HTTPPort          int                `envconfig:"HTTP_PORT" default:"80"`
