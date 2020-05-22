@@ -3,7 +3,6 @@ FROM golang:1.14.3-alpine AS build
 ENV  CGO_ENABLED 0
 WORKDIR /code
 ADD  . ./
-RUN  go test ./...
 RUN  go install
 
 FROM alpine:3.11.6
