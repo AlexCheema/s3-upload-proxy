@@ -28,7 +28,7 @@ import (
 type Config struct {
 	BucketName        string             `envconfig:"BUCKET_NAME" required:"true"`
 	S3Region          string             `envconfig:"S3_REGION" required:"true"`
-	S3IsImplicitAuth  bool               `envconfig:"S3_IS_IMPLICIT_AUTH" default:"false"`
+	S3IsImplicitAuth  bool               `envconfig:"S3_IS_IMPLICIT_AUTH" default:"true"`
 	S3Endpoint        string             `envconfig:"S3_ENDPOINT" default:""`
 	S3AccessKeyID     string             `envconfig:"S3_ACCESS_KEY_ID" default:""`
 	S3SecretAccessKey string             `envconfig:"S3_SECRET_ACCESS_KEY" default:""`
