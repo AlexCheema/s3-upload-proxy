@@ -5,27 +5,49 @@
 package s3
 
 import (
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/external"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/aws/aws-sdk-go-v2/service/s3/s3manager"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/fsouza/s3-upload-proxy/internal/uploader"
 )
 
+type S3Options struct {
+	Region      string
+	IsLocal     bool
+	Endpoint    *string
+	Credentials *credentials.Credentials
+}
+
 // New returns an uploader that sends objects to S3.
-func New() (uploader.Uploader, error) {
+func New(opts S3Options) (uploader.Uploader, error) {
 	u := s3Uploader{}
-	sess, err := external.LoadDefaultAWSConfig()
-	if err != nil {
-		return nil, err
+	var cfg *aws.Config = nil
+	if opts.IsLocal {
+		cfg = &aws.Config{
+			Credentials:      opts.Credentials,
+			Endpoint:         aws.String(*opts.Endpoint),
+			Region:           aws.String(opts.Region),
+			DisableSSL:       aws.Bool(true),
+			S3ForcePathStyle: aws.Bool(true),
+		}
+	} else {
+		cfg = &aws.Config{
+			Region: aws.String(opts.Region),
+		}
 	}
-	u.client = s3.New(sess)
-	u.uploader = s3manager.NewUploaderWithClient(u.client)
+
+	sess, _ := session.NewSession(cfg)
+	s3Client := s3.New(sess)
+	u.client = s3Client
+
+	u.uploader = s3manager.NewUploaderWithClient(s3Client)
 	return &u, nil
 }
 
 type s3Uploader struct {
-	client   *s3.Client
+	client   *s3.S3
 	uploader *s3manager.Uploader
 }
 
@@ -42,10 +64,15 @@ func (u *s3Uploader) Upload(options uploader.Options) error {
 }
 
 func (u *s3Uploader) Delete(options uploader.Options) error {
-	req := u.client.DeleteObjectRequest(&s3.DeleteObjectInput{
-		Bucket: aws.String(options.Bucket),
-		Key:    aws.String(options.Path),
+	req, _ := u.client.DeleteObjectRequest(&s3.DeleteObjectInput{
+		Bucket:                    aws.String(options.Bucket),
+		BypassGovernanceRetention: nil,
+		Key:                       aws.String(options.Path),
+		MFA:                       nil,
+		RequestPayer:              nil,
+		VersionId:                 nil,
 	})
-	_, err := req.Send(options.Context)
+	req.SetContext(options.Context)
+	err := req.Send()
 	return err
 }

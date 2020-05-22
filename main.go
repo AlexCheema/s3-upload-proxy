@@ -7,6 +7,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"log"
 	"mime"
 	"net"
@@ -25,12 +26,17 @@ import (
 
 // Config is the configuration of the s3-uploader.
 type Config struct {
-	BucketName      string             `envconfig:"BUCKET_NAME" required:"true"`
-	UploadDriver    string             `envconfig:"UPLOAD_DRIVER" default:"s3"`
-	HealthcheckPath string             `envconfig:"HEALTHCHECK_PATH" default:"/healthcheck"`
-	HTTPPort        int                `envconfig:"HTTP_PORT" default:"80"`
-	LogLevel        string             `envconfig:"LOG_LEVEL" default:"debug"`
-	CacheControl    cachecontrol.Rules `envconfig:"CACHE_CONTROL_RULES"`
+	BucketName        string             `envconfig:"BUCKET_NAME" required:"true"`
+	S3Region          string             `envconfig:"S3_REGION" required:"true"`
+	S3IsImplicitAuth  bool               `envconfig:"S3_IS_IMPLICIT_AUTH" default:"false"`
+	S3Endpoint        string             `envconfig:"S3_ENDPOINT" default:""`
+	S3AccessKeyID     string             `envconfig:"S3_ACCESS_KEY_ID" default:""`
+	S3SecretAccessKey string             `envconfig:"S3_SECRET_ACCESS_KEY" default:""`
+	UploadDriver      string             `envconfig:"UPLOAD_DRIVER" default:"s3"`
+	HealthcheckPath   string             `envconfig:"HEALTHCHECK_PATH" default:"/healthcheck"`
+	HTTPPort          int                `envconfig:"HTTP_PORT" default:"80"`
+	LogLevel          string             `envconfig:"LOG_LEVEL" default:"debug"`
+	CacheControl      cachecontrol.Rules `envconfig:"CACHE_CONTROL_RULES"`
 }
 
 func loadConfig() (Config, error) {
@@ -47,7 +53,19 @@ func loadConfig() (Config, error) {
 
 func (c *Config) uploader() (uploader.Uploader, error) {
 	if c.UploadDriver == "s3" {
-		return s3.New()
+		if c.S3IsImplicitAuth {
+			return s3.New(s3.S3Options{
+				IsLocal: false,
+				Region:  c.S3Region,
+			})
+		} else {
+			return s3.New(s3.S3Options{
+				IsLocal:     true,
+				Region:      c.S3Region,
+				Endpoint:    &c.S3Endpoint,
+				Credentials: credentials.NewStaticCredentials(c.S3AccessKeyID, c.S3SecretAccessKey, ""),
+			})
+		}
 	}
 	if c.UploadDriver == "mediastore" {
 		return mediastore.New()
