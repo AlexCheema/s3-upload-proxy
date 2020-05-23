@@ -7,7 +7,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"log"
 	"mime"
 	"net"
@@ -15,6 +14,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/aws/aws-sdk-go/aws/credentials"
 
 	"github.com/fsouza/s3-upload-proxy/internal/cachecontrol"
 	"github.com/fsouza/s3-upload-proxy/internal/uploader"
@@ -28,7 +29,7 @@ import (
 type Config struct {
 	BucketName        string             `envconfig:"BUCKET_NAME" required:"true"`
 	S3Region          string             `envconfig:"S3_REGION" required:"true"`
-	S3IsImplicitAuth  bool               `envconfig:"S3_IS_IMPLICIT_AUTH" default:"true"`
+	S3IsImplicitAuth  bool               `envconfig:"S3_USE_IMPLICIT_AUTH" default:"true"`
 	S3Endpoint        string             `envconfig:"S3_ENDPOINT" default:""`
 	S3AccessKeyID     string             `envconfig:"AWS_ACCESS_KEY_ID" default:""`
 	S3SecretAccessKey string             `envconfig:"AWS_SECRET_ACCESS_KEY" default:""`
